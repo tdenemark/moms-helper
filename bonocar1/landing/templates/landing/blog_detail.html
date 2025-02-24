@@ -1,0 +1,46 @@
+{% extends "landing/base.html" %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+    <h1>{{ post.title }}</h1>
+    <p>{{ post.content }}</p>
+    <hr>
+
+    <h2>Comments</h2>
+    <div>
+        {% for comment in comments %}
+            <div style="margin-bottom: 15px;">
+                <strong>{{ comment.user.username }}</strong>
+                <p>{{ comment.content }}</p>
+                <small>{{ comment.created_at }}</small>
+            </div>
+        {% empty %}
+            <p>No comments yet. Be the first to comment!</p>
+        {% endfor %}
+    </div>
+
+    <hr>
+    {% if user.is_authenticated %}
+        <h2>Add a Comment</h2>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Post Comment</button>
+        </form>
+    {% else %}
+        <p><a href="{% url 'login' %}">Log in</a> to add a comment.</p>
+    {% endif %}
+    <form method="POST" action="{% url 'like_post' post.pk %}">
+        {% csrf_token %}
+        <button type="submit">
+            {% if user in post.likes.all %}
+                Unlike
+            {% else %}
+                Like
+            {% endif %}
+        </button>
+    </form>
+    <p>{{ post.likes.count }} likes</p>
+    
+{% endblock %}

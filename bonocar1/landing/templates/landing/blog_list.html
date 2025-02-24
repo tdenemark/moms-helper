@@ -1,0 +1,32 @@
+{% extends "landing/base.html" %}
+{% block title %}Blog Posts{% endblock %}
+
+{% block content %}
+<!-- Link to Create New Post -->
+<a href="{% url 'blog_create' %}">Create New Post</a>
+
+<!-- Search Form -->
+<form method="GET" action="{% url 'blog_list' %}">
+    <input type="text" name="q" placeholder="Search blog posts">
+    <button type="submit">Search</button>
+</form>
+
+<!-- Blog List -->
+<ul>
+    {% for blog in blogs %}
+        <li>
+            <h3>{{ blog.title }}</h3>
+            <p>{{ blog.content|truncatewords:50 }}</p> <!-- Truncate long content -->
+            <small>By {{ blog.author }} on {{ blog.created_at|date:"F j, Y, g:i a" }}</small>
+            <div>
+                <a href="{% url 'blog_update' blog.pk %}">Edit</a>
+                <a href="{% url 'blog_delete' blog.pk %}">Delete</a>
+                <br>
+                <a href="{% url 'blog_detail' blog.pk %}">Add Comment</a>
+            </div>             
+        </li>
+    {% empty %}
+        <p>No blog posts found.</p> <!-- Show message when no blogs are available -->
+    {% endfor %}
+</ul>
+{% endblock %}

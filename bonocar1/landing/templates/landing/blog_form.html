@@ -1,0 +1,22 @@
+<h2>{{ form.instance.title|default:"New Post" }}</h2>
+
+<!-- Display the form to create or edit a blog post -->
+<form method="POST" action="">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save Post</button>
+</form>
+
+<!-- Like functionality is only displayed if post exists and has an ID -->
+{% if post and post.id %}
+    <form method="POST" action="{% url 'like_post' post.id %}">
+        {% csrf_token %}
+        <button type="submit">
+            {% if user in post.likes.all %}
+                Unlike
+            {% else %}
+                Like
+            {% endif %}
+        </button>
+    </form>
+{% endif %}

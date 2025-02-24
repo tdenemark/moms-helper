@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Father</title>
+</head>
+<body>
+    <h2>Sign Up</h2>
+    <form method="post">
+        {% csrf_token %}  <!-- Protects against CSRF attacks -->
+        {{ form.as_p }}    <!-- Displays the form fields -->
+        <button type="submit">Sign Up</button>
+    </form>
+</body>
+</html>
