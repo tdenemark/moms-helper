@@ -1,6 +1,7 @@
 import streamlit as st
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
+import os  # Needed to extract file names
 
 # Function to format XML output
 def prettify_xml(element):
@@ -70,3 +71,50 @@ def process_tmx(uploaded_file, source_lang, target_lang, trans_model, approval_s
             prop.text = value
 
     return prettify_xml(root)
+
+# ---- STREAMLIT UI ---- #
+st.set_page_config(page_title="TMX File Processor", layout="centered")
+
+st.title("📂 TMX File Processor")
+st.write("### Upload a `.tmx` file, enter the details, and download the processed file.")
+
+# File Upload Section
+st.subheader("1️⃣ Upload Your TMX File")
+uploaded_file = st.file_uploader("🔼 Select a `.tmx` file", type=["tmx"])
+
+# Sidebar for user input
+st.sidebar.header("🔧 Configuration Settings")
+source_lang = st.sidebar.text_input("🌍 Source Language", "eng")
+target_lang = st.sidebar.text_input("🌍 Target Language", "frc")
+trans_model = st.sidebar.selectbox("📌 Translation Model", ["generic", "custom", "neural"])
+approval_status = st.sidebar.selectbox("✅ Approval Status", ["APPROVED", "PENDING", "REVIEW"])
+
+# Step 2: Set Processed Filename
+if uploaded_file:
+    original_filename = os.path.splitext(uploaded_file.name)[0]  # Remove ".tmx"
+    default_filename = f"{original_filename}-processed.tmx"
+
+    # Let the user edit the filename before downloading
+    st.subheader("2️⃣ Name the Processed File")
+    processed_filename = st.text_input("📝 Processed File Name", default_filename)
+
+    # Ensure the filename is valid
+    processed_filename = processed_filename.strip().replace(" ", "_")  # Replace spaces with underscores
+    if not processed_filename.endswith(".tmx"):
+        processed_filename += ".tmx"  # Ensure correct file extension
+
+# Step 3: Process & Download Section
+st.subheader("3️⃣ Process and Download")
+if uploaded_file and st.button("🚀 Process TMX File"):
+    try:
+        processed_xml = process_tmx(uploaded_file, source_lang, target_lang, trans_model, approval_status)
+        st.success("✅ Processing complete! Click below to download the new file.")
+
+        # Add Download Button with the User's Chosen Filename
+        st.download_button("⬇️ Download Processed TMX", processed_xml, processed_filename, "application/xml")
+    except Exception as e:
+        st.error(f"❌ Error: {e}")
+
+# Footer
+st.markdown("---")
+st.caption("Built with ❤️ using Streamlit")
