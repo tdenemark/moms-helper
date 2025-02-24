@@ -86,7 +86,7 @@ uploaded_file = st.file_uploader("🔼 Select a `.tmx` file", type=["tmx"])
 st.sidebar.header("🔧 Configuration Settings")
 source_lang = st.sidebar.text_input("🌍 Source Language", "eng")
 target_lang = st.sidebar.text_input("🌍 Target Language", "frc")
-trans_model = st.sidebar.selectbox("📌 Translation Model", ["generic", "custom", "neural"])
+trans_model = st.sidebar.text_input("📌 Translation Model (e.g., generic, custom, neural)", "generic")
 approval_status = st.sidebar.selectbox("✅ Approval Status", ["APPROVED", "PENDING", "REVIEW"])
 
 # Step 2: Set Processed Filename
