@@ -21,46 +21,52 @@ def process_tmx(uploaded_file, source_lang, target_lang, trans_model, approval_s
     tree = ET.parse(uploaded_file)
     root = tree.getroot()
 
-    # Ensure the root <tmx> tag includes srclang
-    root.attrib["srclang"] = source_lang
+    # Modify the existing <header> tag instead of duplicating it
+    header = root.find("header")
+    if header is not None:
+        header.set("srclang", source_lang)  # Update source language
 
+    # Process each <tu> entry inside <body>
     for tu in root.findall("body/tu", namespaces):
-        tuv_en = tu.find(".//tuv[@xml:lang='en-us']", namespaces)
+        # Extract the existing <tuv> elements
+        tuv_source = tu.find(f"tuv[@xml:lang='{source_lang}']", namespaces)
 
-        if tuv_en is None:
-            continue  # Skip if no English text is found
+        if tuv_source is None:
+            continue  # Skip if no source text is found
 
-        en_text = tuv_en.find("seg").text.strip() + "*"
+        # Extract and modify source text
+        source_text = tuv_source.find("seg").text.strip() + "*"
 
-        # Find all non-English <tuv> elements
-        other_tuvs = [tuv for tuv in tu.findall("tuv", namespaces) if tuv.get("{http://www.w3.org/XML/1998/namespace}lang") != "en-us"]
+        # Find the target language <tuv>
+        tuv_target = tu.find(f"tuv[@xml:lang='{target_lang}']", namespaces)
+        if tuv_target is None:
+            continue  # Skip if target language is missing
+
+        target_text = tuv_target.find("seg").text.strip() + "*"
 
         # Remove all original <tuv> elements
         tu.clear()
         tu.set("srclang", source_lang)
 
         # Create new English <tuv> (source_text)
-        tuv_source = ET.Element("tuv", {"xml:lang": "en", "creationId": "source_text"})
-        seg_source = ET.SubElement(tuv_source, "seg")
-        seg_source.text = en_text
-        tu.append(tuv_source)
+        tuv_source_new = ET.Element("tuv", {"xml:lang": source_lang, "creationId": "source_text"})
+        seg_source = ET.SubElement(tuv_source_new, "seg")
+        seg_source.text = source_text
+        tu.append(tuv_source_new)
 
-        # Process each target language
-        for tuv in other_tuvs:
-            lang_code = tuv.get("{http://www.w3.org/XML/1998/namespace}lang")  
-            target_text = tuv.find("seg").text.strip() + "*"
+        # Create target language <tuv> (improvement_text)
+        tuv_improvement = ET.Element("tuv", {"xml:lang": target_lang, "creationId": "improvement_text"})
+        seg_improvement = ET.SubElement(tuv_improvement, "seg")
+        seg_improvement.text = target_text
+        tu.append(tuv_improvement)
 
-            tuv_improvement = ET.Element("tuv", {"xml:lang": lang_code, "creationId": "improvement_text"})
-            seg_improvement = ET.SubElement(tuv_improvement, "seg")
-            seg_improvement.text = target_text
-            tu.append(tuv_improvement)
+        # Create target language <tuv> (target_mt_text)
+        tuv_target_mt = ET.Element("tuv", {"xml:lang": target_lang, "creationId": "target_mt_text"})
+        seg_target_mt = ET.SubElement(tuv_target_mt, "seg")
+        seg_target_mt.text = target_text
+        tu.append(tuv_target_mt)
 
-            tuv_target_mt = ET.Element("tuv", {"xml:lang": lang_code, "creationId": "target_mt_text"})
-            seg_target_mt = ET.SubElement(tuv_target_mt, "seg")
-            seg_target_mt.text = target_text
-            tu.append(tuv_target_mt)
-
-        # Add properties
+        # Add <prop> elements **outside** the <tuv> entries but inside <tu>
         for prop_type, value in [
             ("source_language", source_lang),
             ("target_language", target_lang),
@@ -84,8 +90,8 @@ uploaded_file = st.file_uploader("🔼 Select a `.tmx` file", type=["tmx"])
 
 # Sidebar for user input
 st.sidebar.header("🔧 Configuration Settings")
-source_lang = st.sidebar.text_input("🌍 Source Language", "eng")
-target_lang = st.sidebar.text_input("🌍 Target Language", "frc")
+source_lang = st.sidebar.text_input("🌍 Source Language", "en")
+target_lang = st.sidebar.text_input("🌍 Target Language", "es")
 trans_model = st.sidebar.text_input("📌 Translation Model (e.g., generic, custom, neural)", "generic")
 approval_status = st.sidebar.selectbox("✅ Approval Status", ["APPROVED", "PENDING", "REVIEW"])
 
