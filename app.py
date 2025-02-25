@@ -35,14 +35,14 @@ def process_tmx(uploaded_file, source_lang, target_lang, trans_model, approval_s
             continue  # Skip if no source text is found
 
         # Extract and modify source text
-        source_text = tuv_source.find("seg").text.strip() + "*"
+        source_text = tuv_source.find("seg").text.strip()
 
         # Find the target language <tuv>
         tuv_target = tu.find(f"tuv[@xml:lang='{target_lang}']", namespaces)
         if tuv_target is None:
             continue  # Skip if target language is missing
 
-        target_text = tuv_target.find("seg").text.strip() + "*"
+        target_text = tuv_target.find("seg").text.strip()
 
         # Remove all original <tuv> elements
         tu.clear()
